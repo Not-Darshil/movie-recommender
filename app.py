@@ -3,13 +3,17 @@ import pickle
 import pandas as pd
 import requests
 import time
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
+load_dotenv()
+
 
 movies_dict = pickle.load(open('movie_dict.pkl','rb'))
 similarity = pickle.load(open('crisp_similarity.pkl','rb'))
 
 movies = pd.DataFrame(movies_dict)
-API_KEY = 'ce43983878140a9df295491ec993870d' 
+API_KEY = os.getenv("TMDB_API_KEY")
 FALLBACK_POSTER = "https://images.unsplash.com/photo-1546872006-42c78c0ccb29?q=80&w=1286&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 footer = """
     <style>
@@ -63,8 +67,6 @@ def fetch_poster_og(movie_id):
     
     return "https://image.tmdb.org/t/p/w500/" + data['poster_path']
     
-        
-
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     movies_list = similarity[movie_index]
@@ -78,7 +80,14 @@ def recommend(movie):
         time.sleep(1)  # prevents rapid-fire requests
     return recommended_movies, recommended_movies_posters
 
+st.set_page_config(
+    page_title="🎬 Movie Recommender",
+    page_icon="🎥",                  
+    layout="centered"                      
+)
+
 st.title('🎬 Movie Recommender System')
+
 
 selected_movie_name = st.selectbox(
     "Which movie did you like?",
